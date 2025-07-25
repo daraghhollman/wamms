@@ -3,12 +3,12 @@ Script to load the MESSENGER crossing list and find all direct crossing events
 """
 
 import pandas as pd
-from hermpy import mag, trajectory
+from hermpy import mag, trajectory, utils
 
 
 def main():
     # Load crossing list
-    crossing_list = pd.read_csv("./data/hollman_2025_crossing_list.csv")
+    crossing_list = pd.read_csv("../data/hollman_2025_crossing_list.csv")
     crossing_list["Time"] = pd.to_datetime(crossing_list["Times"])
 
     consecutive_crossing = {
@@ -50,7 +50,7 @@ def main():
 
     direct_sheath_traversals = get_traversal_metadata(direct_sheath_traversals)
 
-    direct_sheath_traversals.to_csv("./data/direct_sheath_traversals.csv")
+    direct_sheath_traversals.to_csv("../data/direct_sheath_traversals.csv")
 
 
 def get_traversal_metadata(traversals):
@@ -76,7 +76,7 @@ def get_traversal_metadata(traversals):
     # the time of crossing.
     # To quickly find the position of each crossing in MSM' coordinates, we can
     # load the full mission at 1 second resolution from file, and cross-reference.
-    full_mission = mag.Load_Mission("./data/messenger_mag")
+    full_mission = mag.Load_Mission("../data/messenger_mag")
     new_dataframe = pd.merge_asof(
         new_dataframe,
         full_mission,
@@ -106,8 +106,8 @@ def get_traversal_metadata(traversals):
     ]
 
     # Heliocentric distance
-    new_dataframe["Heliocentic Distance (AU)"] = trajectory.Get_Heliocentric_Distance(
-        new_dataframe["Mid Time"]
+    new_dataframe["Heliocentic Distance (AU)"] = utils.Constants.KM_TO_AU(
+        trajectory.Get_Heliocentric_Distance(new_dataframe["Mid Time"])
     )
 
     # We remove the columns we don' want
