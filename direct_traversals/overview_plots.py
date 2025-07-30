@@ -8,8 +8,8 @@ import pandas as pd
 from hermpy.plotting import wong_colours
 
 # We first want to load the sheath traversals data set
-# traversals = pd.read_csv("../data/direct_sheath_traversals.csv", index_col=0)
-traversals = pd.read_csv("../data/direct_sheath_traversals_philpott.csv", index_col=0)
+traversals = pd.read_csv("../data/direct_sheath_traversals.csv", index_col=0)
+# traversals = pd.read_csv("../data/direct_sheath_traversals_philpott.csv", index_col=0)
 
 inbound_traversals = traversals.loc[traversals["Direction"] == "Inbound"]
 outbound_traversals = traversals.loc[traversals["Direction"] == "Outbound"]
