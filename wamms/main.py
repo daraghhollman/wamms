@@ -39,7 +39,7 @@ class spacecraft:
         # trajectory data.
         x_data = self.trajectory["X MSM'"]
         cyl_data = np.sqrt(
-            self.trajectory["Y MSM'"] ** 2 + self.trajectory["Y MSM'"] ** 2
+            self.trajectory["Y MSM'"] ** 2 + self.trajectory["Z MSM'"] ** 2
         )
 
         # Load region prediction data
@@ -106,6 +106,7 @@ class spacecraft:
                         x_index, cyl_index
                     ]
             else:
+                print(self.trajectory.iloc[i])
                 for region in region_data["Names"]:
                     trajectory_probabilities[region][
                         i
@@ -191,6 +192,7 @@ class spacecraft:
                 "X MSM'": positions[:, 0],
                 "Y MSM'": positions[:, 1],
                 "Z MSM'": positions[:, 2],
+                "CYL MSM'": np.sqrt(positions[:, 1] ** 2 + positions[:, 2] ** 2),
             }
 
             # If we have already provided trajectory information, we want
