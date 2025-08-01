@@ -3,19 +3,58 @@ Primary script for WAMMS to handle calculating region probabilities for BepiColo
 """
 
 import datetime as dt
+import pathlib
+import re
+import tomllib
 
-import env  # Contains environment variables determined on install
 import numpy as np
 import pandas as pd
 import spiceypy as spice
 
 
 class spacecraft:
-    def __init__(self, name: str, metakernel_path: str = env.PLAN_METAKERNEL):
+    def __init__(
+        self,
+        name: str,
+        metakernel_path: str = "",
+    ):
         self.name: str = name
-        self.metakernel_path: str = metakernel_path
+
+        self.wammsdir = pathlib.Path(__file__).resolve().parent
+
+        if metakernel_path == "":
+            kernels_dir = self.wammsdir / "pkgdata" / "bepi_skd" / "kernels"
+            metakernel_file = kernels_dir / "mk" / "bc_plan.tm"
+
+            # Read the metakernel
+            content = metakernel_file.read_text()
+
+            # Replace PATH_VALUES to point to actual pkgdata path
+            content = re.sub(
+                r"(PATH_VALUES\s*=\s*\()[^)]+\)",
+                rf"\1'{kernels_dir.as_posix()}')",
+                content,
+            )
+
+            # Write to a temporary metakernel file
+            temp_metakernel = pathlib.Path(
+                self.wammsdir / "pkgdata" / "bepi_skd/kernels/mk/" / "temp_bc_plan.tm"
+            )
+            temp_metakernel.write_text(content)
+
+            self.metakernel_path: str = str(
+                self.wammsdir / "pkgdata" / "bepi_skd/kernels/mk/" / "temp_bc_plan.tm"
+            )
+
+        else:
+            self.metakernel_path: str = metakernel_path
+
         self.trajectory: pd.DataFrame = pd.DataFrame()
         self.probabilities: pd.DataFrame = pd.DataFrame()
+        self.prediction_data: pd.DataFrame = pd.DataFrame()
+
+        with open(self.wammsdir / "pkgdata" / "constants.toml", "rb") as f:
+            self.constants = tomllib.load(f)
 
     def update_probabilities(self):
         """A function to add magnetospheric region probability information based on previous MESSENGER findings.
@@ -41,10 +80,8 @@ class spacecraft:
             self.trajectory["Y MSM'"] ** 2 + self.trajectory["Z MSM'"] ** 2
         )
 
-        # Load region prediction data
-        prediction_data = pd.read_csv(
-            env.WAMMSDIR + "/data/messenger_region_observations.csv"
-        )
+        if len(self.prediction_data) == 0:
+            raise RuntimeError("No prior prediction data loaded. See example scripts.")
 
         # Create bins
         bin_size = 0.25
@@ -61,8 +98,8 @@ class spacecraft:
         y_edges = []
         for region_name in region_data["Names"]:
 
-            filtered_predictions = prediction_data.loc[
-                prediction_data["Predicted Region"] == region_name
+            filtered_predictions = self.prediction_data.loc[
+                self.prediction_data["Predicted Region"] == region_name
             ][["X MSM' (radii)", "CYL MSM' (radii)"]]
 
             region_histogram, x_edges, y_edges = np.histogram2d(
@@ -180,10 +217,10 @@ class spacecraft:
 
             # We want the positions in MSM' coordinates, not MSO', and must add
             # 479 km to Z.
-            positions[:, 2] += env.DIPOLE_OFFSET_KM
+            positions[:, 2] += self.constants["DIPOLE_OFFSET_KM"]
 
             # Convert to radii
-            positions /= env.MERCURY_RADIUS_KM
+            positions /= self.constants["MERCURY_RADIUS_KM"]
 
             position_dict = {
                 "Time": times,

@@ -7,5 +7,4 @@ try:
 except PackageNotFoundError:
     pass
 
-# Import class from main.py
-from main import *
+from wamms.main import *

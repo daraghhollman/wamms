@@ -25,7 +25,4 @@ build-backend = 'setuptools.build_meta'
 [tool.setuptools_scm]
 write_to = "wamms/_version.py"
 
-[tool.setuptools]
-zip_safe = false
-
 [tool.setuptools.packages.find]

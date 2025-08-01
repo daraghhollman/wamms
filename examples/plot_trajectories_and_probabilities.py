@@ -7,7 +7,41 @@ import numpy as np
 import pandas as pd
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from main import env, spacecraft
+import wamms
+
+###############################################################################
+# All code to determine the region probability time series are located below.
+# The trajectory and probability data can be accessed through
+# <spacecraft>.trajectory (pandas DataFrame) and
+# <spacecraft>.region_probabilities (dictionary of pandas DataFrames)
+# respectively
+###############################################################################
+
+times = (dt.datetime(2027, 8, 1, 17), dt.datetime(2027, 8, 1, 21))
+
+# Get Data
+mpo = wamms.spacecraft("mpo")
+mmo = wamms.spacecraft("mmo")
+
+region_predictions = pd.read_csv("./data/messenger_region_observations.csv")
+
+for spacecraft in [mpo, mmo]:
+
+    spacecraft.update_trajectory(*times, dt.timedelta(minutes=1))
+    spacecraft.update_trajectory(*times, dt.timedelta(minutes=1))
+
+    # This file contains the region predictions and spatial bin for the entire
+    # MESSENGER mission. It was created with the script
+    # resources/region_probabilities/create_messenger_dataset.py
+    spacecraft.prediction_data = region_predictions
+
+    spacecraft.update_probabilities()
+    spacecraft.update_probabilities()
+
+
+#####################################################
+# The below is code to plot the output of the above #
+#####################################################
 
 wong_colours = {
     "black": "black",
@@ -19,17 +53,6 @@ wong_colours = {
     "red": "#D55E00",
     "pink": "#CC79A7",
 }
-
-times = (dt.datetime(2027, 8, 1, 17), dt.datetime(2027, 8, 1, 21))
-
-# Get Data
-mpo = spacecraft("mpo")
-mpo.update_trajectory(*times, dt.timedelta(minutes=1))
-mpo.update_probabilities()
-
-mmo = spacecraft("mmo")
-mmo.update_trajectory(*times, dt.timedelta(minutes=1))
-mmo.update_probabilities()
 
 # Plot probability time series
 fig, axes = plt.subplots(2, 1, sharex=True, figsize=(9, 4))
@@ -87,10 +110,6 @@ for ax in axes:
 
 
 # Plot trajectories
-# First load the messenger dataset
-region_predictions = pd.read_csv(
-    f"{env.WAMMSDIR}/data/messenger_region_observations.csv"
-)
 
 # Create bins
 bin_size = 0.25
@@ -118,8 +137,6 @@ for region_name in region_data["Names"]:
 
 bin_totals = np.sum(list(region_data["Data"].values()), axis=0)
 plt.tight_layout()
-
-plt.savefig("/home/daraghhollman/timeseries.png", dpi=300)
 
 # Create totals (residence) plot
 fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
@@ -234,4 +251,4 @@ for ax in all_axes:
 
 plt.tight_layout()
 
-plt.savefig("/home/daraghhollman/trajectories.png", dpi=300)
+plt.show()
