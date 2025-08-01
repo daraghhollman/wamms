@@ -29,10 +29,9 @@ class spacecraft:
             # Read the metakernel
             content = metakernel_file.read_text()
 
-            # Replace PATH_VALUES to point to actual pkgdata path
             content = re.sub(
-                r"(PATH_VALUES\s*=\s*\()[^)]+\)",
-                rf"\1'{kernels_dir.as_posix()}')",
+                r"(PATH_VALUES\s*=\s*)\([^)]+\)",
+                rf"\1( '{kernels_dir.as_posix()}' )",
                 content,
             )
 
