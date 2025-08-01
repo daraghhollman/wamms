@@ -1,3 +1,6 @@
 [submodule "bepi_skd"]
-	path = bepi_skd
+	path = wamms/pkgdata/bepi_skd
+	url = https://s2e2.cosmos.esa.int/bitbucket/scm/spice_kernels/bepicolombo.git
+[submodule "wamms/pkgdata/bepi_skd"]
+	path = wamms/pkgdata/bepi_skd
 	url = https://s2e2.cosmos.esa.int/bitbucket/scm/spice_kernels/bepicolombo.git
