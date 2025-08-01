@@ -1,6 +1,7 @@
 import datetime as dt
 
 import matplotlib.dates as mdates
+import matplotlib.patheffects
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -23,63 +24,66 @@ times = (dt.datetime(2027, 8, 1, 17), dt.datetime(2027, 8, 1, 21))
 
 # Get Data
 mpo = spacecraft("mpo")
-mpo.update_trajectory(*times, dt.timedelta(minutes=5))
+mpo.update_trajectory(*times, dt.timedelta(minutes=1))
 mpo.update_probabilities()
 
 mmo = spacecraft("mmo")
-mmo.update_trajectory(*times, dt.timedelta(minutes=5))
+mmo.update_trajectory(*times, dt.timedelta(minutes=1))
 mmo.update_probabilities()
 
-mmo.region_probabilities.to_csv("~/test.csv")
-mmo.trajectory.to_csv("~/test-other.csv")
-
 # Plot probability time series
-fig, axes = plt.subplots(2, 1, sharex=True)
+fig, axes = plt.subplots(2, 1, sharex=True, figsize=(9, 4))
+
 mpo_ax, mmo_ax = axes
 
-mpo_ax.plot(
-    mpo.region_probabilities["Time"],
-    mpo.region_probabilities["Solar Wind"],
-    color=wong_colours["yellow"],
-)
-mpo_ax.plot(
-    mpo.region_probabilities["Time"],
-    mpo.region_probabilities["Magnetosheath"],
-    color=wong_colours["orange"],
-)
-mpo_ax.plot(
-    mpo.region_probabilities["Time"],
-    mpo.region_probabilities["Magnetosphere"],
-    color=wong_colours["blue"],
-)
+regions = ["Solar Wind", "Magnetosheath", "Magnetosphere"]
+colours = ["yellow", "orange", "blue"]
 
-mmo_ax.plot(
-    mmo.region_probabilities["Time"],
-    mmo.region_probabilities["Solar Wind"],
-    color=wong_colours["yellow"],
-    label="P(Solar Wind)",
-)
-mmo_ax.plot(
-    mmo.region_probabilities["Time"],
-    mmo.region_probabilities["Magnetosheath"],
-    color=wong_colours["orange"],
-    label="P(Magnetosheath)",
-)
-mmo_ax.plot(
-    mmo.region_probabilities["Time"],
-    mmo.region_probabilities["Magnetosphere"],
-    color=wong_colours["blue"],
-    label="P(Magnetosphere)",
-)
+for r, c in zip(regions, colours):
+    mpo_ax.plot(
+        mpo.region_probabilities["Time"],
+        mpo.region_probabilities[r],
+        color=wong_colours[c],
+        label=f"P({r})",
+        path_effects=[  # Add a black outline to the line
+            matplotlib.patheffects.Stroke(linewidth=3, foreground="k"),
+            matplotlib.patheffects.Normal(),
+        ],
+    )
+    mmo_ax.plot(
+        mmo.region_probabilities["Time"],
+        mmo.region_probabilities[r],
+        color=wong_colours[c],
+        label=f"P({r})",
+        path_effects=[  # Add a black outline to the line
+            matplotlib.patheffects.Stroke(linewidth=3, foreground="k"),
+            matplotlib.patheffects.Normal(),
+        ],
+    )
 
 mmo_ax.legend()
 
-mmo_ax.text(0, 1, "MMO", color=wong_colours["pink"], transform=mmo_ax.transAxes)
-mpo_ax.text(0, 1, "MPO", color=wong_colours["light blue"], transform=mpo_ax.transAxes)
+mmo_ax.text(
+    0,
+    1.05,
+    "MMO",
+    fontsize="large",
+    color=wong_colours["pink"],
+    transform=mmo_ax.transAxes,
+)
+mpo_ax.text(
+    0,
+    1.05,
+    "MPO",
+    fontsize="large",
+    color=wong_colours["light blue"],
+    transform=mpo_ax.transAxes,
+)
 
 for ax in axes:
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d\n%H:%M"))
     ax.set_ylabel("Region Probability")
+    ax.margins(x=0)
 
 
 # Plot trajectories
@@ -113,6 +117,9 @@ for region_name in region_data["Names"]:
     region_data["Data"][region_name] = region_histogram
 
 bin_totals = np.sum(list(region_data["Data"].values()), axis=0)
+plt.tight_layout()
+
+plt.savefig("/home/daraghhollman/timeseries.png", dpi=300)
 
 # Create totals (residence) plot
 fig, axes = plt.subplots(2, 2, sharex=True, sharey=True)
@@ -194,6 +201,7 @@ for ax in all_axes:
         mmo.trajectory["X MSM'"], mmo.trajectory["CYL MSM'"], color=wong_colours["pink"]
     )
 
+    # Add arrows in the middle of the trajectory
     ax.annotate(
         "",
         xytext=(
@@ -220,5 +228,10 @@ for ax in all_axes:
         arrowprops=dict(arrowstyle="-|>", color=wong_colours["pink"]),
     )
 
+    ax.set_xlim(x_bins[0], x_bins[-1])
 
-plt.show()
+    ax.set_aspect("equal")
+
+plt.tight_layout()
+
+plt.savefig("/home/daraghhollman/trajectories.png", dpi=300)

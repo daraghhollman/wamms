@@ -4,11 +4,10 @@ Primary script for WAMMS to handle calculating region probabilities for BepiColo
 
 import datetime as dt
 
+import env  # Contains environment variables determined on install
 import numpy as np
 import pandas as pd
 import spiceypy as spice
-
-import env  # Contains environment variables determined on install
 
 
 class spacecraft:
@@ -106,7 +105,6 @@ class spacecraft:
                         x_index, cyl_index
                     ]
             else:
-                print(self.trajectory.iloc[i])
                 for region in region_data["Names"]:
                     trajectory_probabilities[region][
                         i

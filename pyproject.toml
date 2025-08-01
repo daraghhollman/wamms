@@ -1,0 +1,31 @@
+[project]
+name = "wamms"
+description = "A collection of tools to determine where BepiColombo spacecraft likely are with repsect to magnetospheric boundaries"
+authors = [
+    { name="Daragh Hollman", email="dhollman@cp.dias.ie" },
+    { name="Caitriona Jackman", email="cjackman@cp.dias.ie"},
+]
+readme = "README.md"
+license = {file = "LICENSE"}
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "spiceypy",
+    "pandas",
+]
+dynamic = ["version"]
+
+[project.urls]
+homepage = "https://github.com/daraghhollman/wamms"
+
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = 'setuptools.build_meta'
+
+[tool.setuptools_scm]
+write_to = "wamms/_version.py"
+
+[tool.setuptools]
+zip_safe = false
+
+[tool.setuptools.packages.find]
