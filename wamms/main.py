@@ -4,11 +4,11 @@ Primary script for WAMMS to handle calculating region probabilities for BepiColo
 
 import datetime as dt
 import pathlib
-import re
 import tomllib
 
 import numpy as np
 import pandas as pd
+import planetary_coverage as pc
 import spiceypy as spice
 
 
@@ -16,37 +16,22 @@ class spacecraft:
     def __init__(
         self,
         name: str,
-        metakernel_path: str = "",
+        metakernel: str | pc.MetaKernel = "",
     ):
         self.name: str = name
 
         self.wammsdir = pathlib.Path(__file__).resolve().parent
 
-        if metakernel_path == "":
+        if metakernel == "":
             kernels_dir = self.wammsdir / "pkgdata" / "bepi_skd" / "kernels"
             metakernel_file = kernels_dir / "mk" / "bc_plan.tm"
 
-            # Read the metakernel
-            content = metakernel_file.read_text()
+            mk = pc.MetaKernel(metakernel_file, kernels=kernels_dir)
 
-            content = re.sub(
-                r"(PATH_VALUES\s*=\s*)\([^)]+\)",
-                rf"\1( '{kernels_dir.as_posix()}' )",
-                content,
-            )
-
-            # Write to a temporary metakernel file
-            temp_metakernel = pathlib.Path(
-                self.wammsdir / "pkgdata" / "bepi_skd/kernels/mk/" / "temp_bc_plan.tm"
-            )
-            temp_metakernel.write_text(content)
-
-            self.metakernel_path: str = str(
-                self.wammsdir / "pkgdata" / "bepi_skd/kernels/mk/" / "temp_bc_plan.tm"
-            )
+            self.metakernel = mk
 
         else:
-            self.metakernel_path: str = metakernel_path
+            self.metakernel = metakernel
 
         self.trajectory: pd.DataFrame = pd.DataFrame()
         self.probabilities: pd.DataFrame = pd.DataFrame()
@@ -192,7 +177,7 @@ class spacecraft:
         None - Function updates self.trajectory
         """
 
-        with spice.KernelPool(self.metakernel_path):
+        with spice.KernelPool(self.metakernel):
 
             times = [
                 start_time + i * res
