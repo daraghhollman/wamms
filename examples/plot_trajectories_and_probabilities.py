@@ -28,14 +28,12 @@ region_predictions = pd.read_csv("./data/messenger_region_observations.csv")
 for spacecraft in [mpo, mmo]:
 
     spacecraft.update_trajectory(*times, dt.timedelta(minutes=1))
-    spacecraft.update_trajectory(*times, dt.timedelta(minutes=1))
 
     # This file contains the region predictions and spatial bin for the entire
     # MESSENGER mission. It was created with the script
     # resources/region_probabilities/create_messenger_dataset.py
     spacecraft.prediction_data = region_predictions
 
-    spacecraft.update_probabilities()
     spacecraft.update_probabilities()
 
 
