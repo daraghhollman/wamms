@@ -9,9 +9,10 @@ readme = "README.md"
 license = {file = "LICENSE"}
 dependencies = [
     "numpy",
+    "pandas",
     "matplotlib",
     "spiceypy",
-    "pandas",
+    "planetary_coverage"
 ]
 dynamic = ["version"]
 
